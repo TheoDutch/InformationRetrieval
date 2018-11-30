@@ -16,9 +16,12 @@ import codecs
 import frogress
 import re
 
+datapath = '/mnt/HDD/latimes/'
+#datapath = 'testdata/'
+
 def get_schema():
-  return Schema(docid=ID(unique=True, stored=True), headline=TEXT(stored=True),
-                path=ID(stored=True), content=TEXT)
+        return Schema(docid=ID(unique=True, stored=True),
+        headline=TEXT(stored=True), path=ID(stored=True), content=TEXT)
 
 def striptags(data):
     p = re.compile(r'<.*?>')
@@ -30,28 +33,28 @@ def add_doc(writer, path):
     soup = BeautifulSoup(infile, 'xml')
     docs  = soup.find_all('DOC')
     for doc in docs:
-        docid = doc.DOCID.get_text()
+        docid = unicode(striptags(str(doc.DOCID)), "utf-8")
         headline = unicode(striptags(str(doc.HEADLINE)),"utf-8")  # yes, this works, please dont change
         text = unicode(striptags(str(doc.TEXT)),"utf-8")
         writer.add_document(docid=docid, headline=headline, path=path, content=text)
-     
+
 def clean_index(dirname):
-  # Always create the index from scratch
-  if not os.path.exists(dirname):
-      os.mkdir(dirname)
-  print(dirname, get_schema())
-  ix = index.create_in(dirname, get_schema())
-  writer = ix.writer()
-  
-  doclist = [f for f in listdir('../data') if isfile(join('../data', f))]
-  # Assume we have a function that gathers the filenames of the
-  # documents to be indexed
-  #for path in my_docs():
-  l = len(doclist)
-  #for i, filename in enumerate(doclist):
-  for filename in frogress.bar(doclist):
-      add_doc(writer, u"../data/" + filename)
-  writer.commit()
+    # Always create the index from scratch
+    if not os.path.exists(dirname):
+        os.mkdir(dirname)
+    print(dirname, get_schema())
+    ix = index.create_in(dirname, get_schema())
+    writer = ix.writer()
+
+    doclist = [f for f in listdir(datapath) if isfile(join(datapath, f))]
+    # Assume we have a function that gathers the filenames of the
+    # documents to be indexed
+    #for path in my_docs():
+    l = len(doclist)
+    #for i, filename in enumerate(doclist):
+    for filename in frogress.bar(doclist):
+        add_doc(writer, u""+datapath + filename)
+    writer.commit()
 
 #==============================================================================
 # schema = Schema(title=TEXT(stored=True), content=TEXT) # stored shows in results
@@ -64,13 +67,14 @@ def clean_index(dirname):
 # writer.commit()
 #==============================================================================
 
-clean_index("data_indexed")
-ix = index.open_dir("data_indexed")
+#clean_index("latimes_indexed")
+ix = index.open_dir("latimes_indexed")
 searcher = ix.searcher()
-parser = QueryParser("content", ix.schema)
-myquery = parser.parse(u"konijn")
+parser = QueryParser("headline", ix.schema)
+myquery = parser.parse(u"television")
 results = searcher.search(myquery)
 
 print(len(results))
-print([result for result in results])
+for result in results:
+    print(result)
 searcher.close()
