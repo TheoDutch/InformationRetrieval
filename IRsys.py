@@ -71,7 +71,7 @@ def clean_index(dirname):
 ix = index.open_dir("latimes_indexed")
 searcher = ix.searcher()
 parser = QueryParser("headline", ix.schema)
-myquery = parser.parse(u"television")
+myquery = parser.parse(u"Father")
 results = searcher.search(myquery)
 
 print(len(results))
