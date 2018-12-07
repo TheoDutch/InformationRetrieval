@@ -15,10 +15,21 @@ from bs4 import BeautifulSoup
 import codecs
 import frogress
 import re
+from whoosh import scoring
+from whoosh.lang.porter import stem
+
+#dingen van Theo
+#datapath = '/mnt/HDD/latimes/'
+#datapath = 'testdata/'
+
+#ding van Kimberly
+datapath = "/Users/kimberlystoutjesdijk/Desktop/index/"
+
+laptopVanKimberlyDoetMoeilijk = True
 
 def get_schema():
-  return Schema(docid=ID(unique=True, stored=True), headline=TEXT(stored=True),
-                path=ID(stored=True), content=TEXT)
+    return Schema(docid=ID(unique=True, stored=True),
+    headline=TEXT(stored=True), path=ID(stored=True), content=TEXT)
 
 def striptags(data):
     p = re.compile(r'<.*?>')
@@ -27,31 +38,41 @@ def striptags(data):
 def add_doc(writer, path):
     infile = open(path,"r").read()
     infile = '<root>'+infile+'</root>'
-    soup = BeautifulSoup(infile, 'xml')
-    docs  = soup.find_all('DOC')
-    for doc in docs:
-        docid = unicode(striptags(str(doc.DOCID)),"utf-8")
-        headline = unicode(striptags(str(doc.HEADLINE)),"utf-8")  # yes, this works, please dont change
-        text = unicode(striptags(str(doc.TEXT)),"utf-8")
-        writer.add_document(docid=docid, headline=headline, path=path, content=text)
-     
+    if laptopVanKimberlyDoetMoeilijk:
+        soup = BeautifulSoup(infile, 'html.parser')
+        docs = soup.find_all('doc')
+        for doc in docs:
+            docid = unicode(striptags(str(doc.docid)), "utf-8")
+            headline = unicode(striptags(str(doc.headline)),"utf-8")  # yes, this works, please dont change
+            text = unicode(striptags(str(doc.text)),"utf-8")
+            writer.add_document(docid=docid, headline=headline, path=path, content=text)
+    else:
+        soup = BeautifulSoup(infile, 'xml')
+        docs = soup.find_all('DOC')
+        for doc in docs:
+            docid = unicode(striptags(str(doc.DOCID)), "utf-8")
+            headline = unicode(striptags(str(doc.HEADLINE)), "utf-8")  # yes, this works, please dont change
+            text = unicode(striptags(str(doc.TEXT)), "utf-8")
+            writer.add_document(docid=docid, headline=headline, path=path, content=text)
+
+>>>>>>> 3685dcb13c7dd8597523da5f4e1337e984a07e54
 def clean_index(dirname):
-  # Always create the index from scratch
-  if not os.path.exists(dirname):
-      os.mkdir(dirname)
-  print(dirname, get_schema())
-  ix = index.create_in(dirname, get_schema())
-  writer = ix.writer()
-  
-  doclist = [f for f in listdir('../data') if isfile(join('../data', f))]
-  # Assume we have a function that gathers the filenames of the
-  # documents to be indexed
-  #for path in my_docs():
-  l = len(doclist)
-  #for i, filename in enumerate(doclist):
-  for filename in frogress.bar(doclist):
-      add_doc(writer, u"../data/" + filename)
-  writer.commit()
+    # Always create the index from scratch
+    if not os.path.exists(dirname):
+        os.mkdir(dirname)
+    print(dirname, get_schema())
+    ix = index.create_in(dirname, get_schema())
+    writer = ix.writer()
+
+    doclist = [f for f in listdir(datapath) if isfile(join(datapath, f))]
+    # Assume we have a function that gathers the filenames of the
+    # documents to be indexed
+    #for path in my_docs():
+    l = len(doclist)
+    #for i, filename in enumerate(doclist):
+    for filename in frogress.bar(doclist):
+        add_doc(writer, u""+datapath + filename)
+    writer.commit()
 
 #==============================================================================
 # schema = Schema(title=TEXT(stored=True), content=TEXT) # stored shows in results
@@ -64,18 +85,38 @@ def clean_index(dirname):
 # writer.commit()
 #==============================================================================
 
-#clean_index("data_indexed")
-ix = index.open_dir("data_indexed")
-print(ix.schema)
-results = ix.searcher().search(Every('docid'))
-print("results: " + str(results))
-for result in results:
-    print("text")
-    print "Rank: %s Id: %s Headline: %s" % (result.rank, result['docid'], result['headline'])
-#parser = QueryParser("docid", ix.schema)
-#myquery = parser.parse(u" 156681 ")
-#results = searcher.search(myquery)
+#clean_index("latimes_indexed")
+ix = index.open_dir("latimes_indexed")
+# searcher = ix.searcher()
+# parser = QueryParser("content", ix.schema)
+# myquery = parser.parse(u"plants")
+# results = searcher.search(myquery)
+#
+# print(len(results))
+# for result in results:
+#     print(result)
+# searcher.close()
 
-#print(len(results))
-#print([result for result in results])
-#searcher.close()
+
+#scoring.BM25F(B=0.75, K1=1.5) -> nog uitzoeken wat die parameters precies doen, in de documentation staat alleen 'see literature'
+#scoring.TF_IDF()
+#scoring.Frequency
+queryTest = "plant"
+with ix.searcher(weighting = scoring.Frequency) as searcher:
+    parser = QueryParser("content", ix.schema)
+    myquery = parser.parse(u"" + queryTest)
+    results = searcher.search(myquery)
+
+    #misschien uiteindelijk per query opslaan welke docid's (moeten we deze wel hebben???) zijn gevonden
+
+    #gaat er eigenlijk wel verschil zijn tussen de verschillende weighting dingen? -> staat in de relevantie ook hoe relevant
+    #ze zijn, of alleen dat een doc relevant is?
+    #anders kijken naar de top ... per query?
+
+    print(len(results))
+    for result in results:
+        print(result)
+
+#https://whoosh.readthedocs.io/en/latest/stemming.html
+#^ voor stemming, nog checken of hij dit ook doet voor het indexen
+>>>>>>> 3685dcb13c7dd8597523da5f4e1337e984a07e54
