@@ -30,7 +30,7 @@ def add_doc(writer, path):
     soup = BeautifulSoup(infile, 'xml')
     docs  = soup.find_all('DOC')
     for doc in docs:
-        docid = doc.DOCID.get_text()
+        docid = unicode(striptags(str(doc.DOCID)),"utf-8")
         headline = unicode(striptags(str(doc.HEADLINE)),"utf-8")  # yes, this works, please dont change
         text = unicode(striptags(str(doc.TEXT)),"utf-8")
         writer.add_document(docid=docid, headline=headline, path=path, content=text)
@@ -64,13 +64,18 @@ def clean_index(dirname):
 # writer.commit()
 #==============================================================================
 
-clean_index("data_indexed")
+#clean_index("data_indexed")
 ix = index.open_dir("data_indexed")
-searcher = ix.searcher()
-parser = QueryParser("content", ix.schema)
-myquery = parser.parse(u"konijn")
-results = searcher.search(myquery)
+print(ix.schema)
+results = ix.searcher().search(Every('docid'))
+print("results: " + str(results))
+for result in results:
+    print("text")
+    print "Rank: %s Id: %s Headline: %s" % (result.rank, result['docid'], result['headline'])
+#parser = QueryParser("docid", ix.schema)
+#myquery = parser.parse(u" 156681 ")
+#results = searcher.search(myquery)
 
-print(len(results))
-print([result for result in results])
-searcher.close()
+#print(len(results))
+#print([result for result in results])
+#searcher.close()
