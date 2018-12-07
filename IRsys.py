@@ -55,7 +55,6 @@ def add_doc(writer, path):
             text = unicode(striptags(str(doc.TEXT)), "utf-8")
             writer.add_document(docid=docid, headline=headline, path=path, content=text)
 
->>>>>>> 3685dcb13c7dd8597523da5f4e1337e984a07e54
 def clean_index(dirname):
     # Always create the index from scratch
     if not os.path.exists(dirname):
@@ -119,4 +118,3 @@ with ix.searcher(weighting = scoring.Frequency) as searcher:
 
 #https://whoosh.readthedocs.io/en/latest/stemming.html
 #^ voor stemming, nog checken of hij dit ook doet voor het indexen
->>>>>>> 3685dcb13c7dd8597523da5f4e1337e984a07e54
