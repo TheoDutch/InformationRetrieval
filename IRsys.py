@@ -28,7 +28,7 @@ datapath = "/Users/kimberlystoutjesdijk/Desktop/index/"
 laptopVanKimberlyDoetMoeilijk = True
 
 def get_schema():
-    return Schema(docid=ID(unique=True, stored=True),
+    return Schema(docno=ID(unique=True, stored=True),
     headline=TEXT(stored=True), path=ID(stored=True), content=TEXT)
 
 def striptags(data):
@@ -42,18 +42,18 @@ def add_doc(writer, path):
         soup = BeautifulSoup(infile, 'html.parser')
         docs = soup.find_all('doc')
         for doc in docs:
-            docid = unicode(striptags(str(doc.docid)), "utf-8")
+            docno = unicode(striptags(str(doc.docno)), "utf-8")
             headline = unicode(striptags(str(doc.headline)),"utf-8")  # yes, this works, please dont change
             text = unicode(striptags(str(doc.text)),"utf-8")
-            writer.add_document(docid=docid, headline=headline, path=path, content=text)
+            writer.add_document(docno=docno, headline=headline, path=path, content=text)
     else:
         soup = BeautifulSoup(infile, 'xml')
         docs = soup.find_all('DOC')
         for doc in docs:
-            docid = unicode(striptags(str(doc.DOCID)), "utf-8")
+            docno = unicode(striptags(str(doc.DOCNO)), "utf-8")
             headline = unicode(striptags(str(doc.HEADLINE)), "utf-8")  # yes, this works, please dont change
             text = unicode(striptags(str(doc.TEXT)), "utf-8")
-            writer.add_document(docid=docid, headline=headline, path=path, content=text)
+            writer.add_document(docno=docno, headline=headline, path=path, content=text)
 
 def clean_index(dirname):
     # Always create the index from scratch
@@ -106,16 +106,20 @@ with ix.searcher(weighting = scoring.Frequency) as searcher:
     myquery = parser.parse(u"" + queryTest)
     results = searcher.search(myquery)
 
-    #misschien uiteindelijk per query opslaan welke docid's (moeten we deze wel hebben???) zijn gevonden
-
-    #gaat er eigenlijk wel verschil zijn tussen de verschillende weighting dingen? -> staat in de relevantie ook hoe relevant
-    #ze zijn, of alleen dat een doc relevant is?
-    #anders kijken naar de top ... per query?
-
     print(len(results))
     for result in results:
         print(result)
 
+    #The results file has the format: query_id, iter, docno, rank, sim, run_id  delimited by spaces.
+    # Query id is the query number (e.g. 136.6 or 1894, depending on the evaluation year).
+    # The iter constant, 0, is required but ignored by trec_eval.
+    # The Document numbers are string values like FR940104-0-00001 (found between <DOCNO> tags in the documents).
+    # The Similarity (sim) is a float value.
+    # Rank is an integer from 0 to 1000, which is required but ignored by the program.
+    # Runid is a string which gets printed out with the output.
+    for i in range (len(results)):
+        with open("results.txt", "a") as f:
+            f.write("query id hier " + " " + str(0) + " " + str(results[i].get("docid")) + " " + str(10-i) + " " + str(0) + " " + "bla" + "\n")
+
 #https://whoosh.readthedocs.io/en/latest/stemming.html
 #^ voor stemming, nog checken of hij dit ook doet voor het indexen
->>>>>>> e6e0fa3bff4a75f1ddb5a1a7e3ed4ad1bb1cadc8
