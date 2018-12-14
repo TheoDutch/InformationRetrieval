@@ -15,6 +15,8 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from whoosh.writing import AsyncWriter
 import re
+from whoosh.writing import BufferedWriter
+
 
 def striptags(data):
     p = re.compile(r'<.*?>')
@@ -25,25 +27,12 @@ def get_schema():
     return Schema(docno=ID(unique=True, stored=True),
     headline=TEXT(stored=True), path=ID(stored=True), content=TEXT)
     
-# get a list with all the documents that have to be indexed
-#here = "."
-#data = "data"
-#all_ = "*"
 
-
-
-#doclist = glob.glob(os.path.join(here, data, "latimes", all_))
-#doclist.extend(glob.glob(os.path.join(here, data, "fbis", all_)))
-#doclist.extend(glob.glob(os.path.join(here, data, "fr94", all_)))
-#doclist.extend(glob.glob(os.path.join(here, data, "ft", all_)))
-
-
-laptopVanKimberlyDoetMoeilijk = False
 def add_doc(writer, path):
     infile = open(path,"r").read()
     infile = '<root>'+infile+'</root>'
-    print(path)
-    print(len(infile))
+    #print(path)
+    #print(len(infile))
     soup = BeautifulSoup(infile, 'xml')
     docs = soup.find_all('DOC')
     for doc in docs:
@@ -64,7 +53,7 @@ def index_TREC_ROBUST_04():
     # creating the index writer (if fasil use AsyncWriter 
     # (https://whoosh.readthedocs.io/en/latest/api/writing.html#whoosh.writing.AsyncWriter))
     # writer = ix.writer()
-    writer = AsyncWriter(ix)
+    writer = ix.writer()#BufferedWriter(ix, period=120, limit=20)
     
     dir_list = ['latimes', 'fbis', 'fr94', 'ft']
     doclist = []

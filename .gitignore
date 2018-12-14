@@ -1,6 +1,10 @@
 # project specific
 data/
 /data/
+indexdir/
+/indexdir/
+index/
+/index/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

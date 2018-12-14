@@ -29,5 +29,5 @@ for id in docid:
     print(id.get_text())
 texts = soup.find_all('TEXT')
 for text in texts:
-    print(title.get_text())
+    print(text.get_text())
     
