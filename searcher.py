@@ -50,15 +50,15 @@ with ix.searcher(weighting = scoring.Frequency) as searcher:
             results_['rank'] = result.rank
             results_['score'] = result.score
             result_list.append(results_)
-        
+#%%        
 # creating a string template for the eval file        
-t = Template('$topic_number Q0 $docno  $rank $score IR_group6 ')
+t = Template('$topic_number Q0 $docno $rank $score IR_group6')
 
 eval_format = []
 for result in result_list:
     file = os.path.basename(os.path.normpath(result['path']))
     doc_no = result['docno']
-    foo = t.substitute(topic_number=result['topic_no'], docno="-".join([file, doc_no]), rank=result['rank'], score=result['score'])
+    foo = t.substitute(topic_number=result['topic_no'], docno=result['docno'], rank=result['rank'], score=result['score'])
     eval_format.append(foo)
 
 #%%
