@@ -7,7 +7,7 @@ from pathlib import Path
 import nltk
 from nltk.corpus import stopwords
 from nltk import word_tokenize
-
+from nltk.stem.porter import *
 
 def extract_topics(filepath="./data/testset/topics.txt"):
     # open the file
@@ -43,30 +43,40 @@ def extract_topics(filepath="./data/testset/topics.txt"):
          ,'narratives': narratives
         })
 
-    #remove stopwords title
-    content = []
+    #remove stopwords title + stemming
+    stopContent = []
+
     stopWordsEnglish = stopwords.words('english')
+    stemmer = PorterStemmer()
+    stemContent = []
 
     for item in range(0, len(topic_list["topic_number"])):
         current = word_tokenize(topic_list["title"][item])
-        content.append(' '.join([w for w in current if w.lower() not in stopWordsEnglish]))
+        stopContent.append(' '.join([w for w in current if w.lower() not in stopWordsEnglish]))
+        stemContent.append(' '.join([stemmer.stem(word) for word in current]))
 
-    titleStopwordRemoved = pd.DataFrame({"titleStopwordRemoved": content})
+    titleStopwordRemoved = pd.DataFrame({"titleStopwordRemoved": stopContent})
     topic_list = topic_list.assign(titleStopwordRemoved = titleStopwordRemoved.values)
+    stemTitle = pd.DataFrame({"stemTitle": stemContent})
+    topic_list = topic_list.assign(stemTitle = stemTitle.values)
 
-    #remove stopwords descriptions
-    content = []
+    #remove stopwords descriptions + stemming
+    stopContent = []
+    stemContent = []
 
     for item in range(0, len(topic_list["topic_number"])):
         current = word_tokenize(topic_list["descriptions"][item])
-        content.append(' '.join([w for w in current if w.lower() not in stopWordsEnglish]))
+        stopContent.append(' '.join([w for w in current if w.lower() not in stopWordsEnglish]))
+        stemContent.append(' '.join([stemmer.stem(word) for word in current]))
 
-    descriptionsStopwordRemoved = pd.DataFrame({"descriptionsStopwordRemoved": content})
+    descriptionsStopwordRemoved = pd.DataFrame({"descriptionsStopwordRemoved": stopContent})
     topic_list = topic_list.assign(descriptionsStopwordRemoved = descriptionsStopwordRemoved.values)
+    stemDescription = pd.DataFrame({"stemDescription": stemContent})
+    topic_list = topic_list.assign(stemDescription = stemDescription.values)
 
     return topic_list
 
-    
 if __name__ == '__main__':
     # this function will automatically extract topics needed for TREC_Robust_2004
+    #extract_topics().to_csv('out.csv')
     extract_topics()
