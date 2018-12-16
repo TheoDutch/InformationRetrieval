@@ -33,7 +33,7 @@ with ix.searcher(weighting = scoring.Frequency) as searcher:
 #%%        
         
 result_list = []
-with ix.searcher(weighting = scoring.Frequency) as searcher:
+with ix.searcher(weighting = scoring.TF_IDF()) as searcher:
     parser = QueryParser("content", ix.schema)
     for i, row in topic_list.iterrows():
         print(i)
@@ -56,8 +56,8 @@ t = Template('$topic_number Q0 $docno $rank $score IR_group6')
 
 eval_format = []
 for result in result_list:
-    file = os.path.basename(os.path.normpath(result['path']))
-    doc_no = result['docno']
+    #file = os.path.basename(os.path.normpath(result['path']))
+    #doc_no = result['docno']
     foo = t.substitute(topic_number=result['topic_no'], docno=result['docno'], rank=result['rank'], score=result['score'])
     eval_format.append(foo)
 
