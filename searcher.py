@@ -12,6 +12,11 @@ from whoosh import scoring
 from extract_queries import extract_topics
 from string import Template
 import os
+from rake_nltk import Rake
+import string
+import re
+import pandas as pd
+from pathlib import Path
 
 
 ix = index.open_dir("indexdir")
@@ -31,7 +36,23 @@ with ix.searcher(weighting = scoring.Frequency) as searcher:
         print(result)
 '''      
 #%%        
-        
+
+
+def extract_keywords():
+    keyword_list = []
+    for i, row in topic_list.iterrows():
+        r = Rake()
+        r.extract_keywords_from_text(row['narratives'])
+        keywords = r.get_ranked_phrases()[0]
+        #remove punktuation that is in there for some reason
+        keywords = keywords.translate(str.maketrans('','',string.punctuation))
+        # remove shortwords
+        shortword = re.compile(r'\W*\b\w{1,3}\b')
+        keywords = shortword.sub("", keywords)
+        keyword_list.append(keywords.strip())
+        se = pd.Series(keyword_list)
+        topic_list['keywords'] = se.values
+            
 result_list = []
 with ix.searcher(weighting = scoring.TF_IDF()) as searcher:
     parser = QueryParser("content", ix.schema)
@@ -62,6 +83,7 @@ for result in result_list:
     eval_format.append(foo)
 
 #%%
-with open('query_results.txt', 'w') as f:
+filepath = Path('./Evaluation/query_results.txt')
+with open(filepath, 'w') as f:
     for item in eval_format:
         f.write("%s\n" % item)
