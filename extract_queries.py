@@ -8,8 +8,9 @@ import nltk
 from nltk.corpus import stopwords
 from nltk import word_tokenize
 from nltk.stem.porter import *
+from nltk.stem import WordNetLemmatizer
 
-def extract_topics(filepath="./data/testset/topics.txt"):
+def extract_topics(filepath="./data/testset/topics.txt", cutoff=False):
     # open the file
     filepath = Path(filepath)
     infile = open(filepath, "r").read()
@@ -43,15 +44,21 @@ def extract_topics(filepath="./data/testset/topics.txt"):
             , 'narratives': narratives
          })
 
+    # Lemmatizer
+    wordnet_lemmatizer = WordNetLemmatizer()
+
+
     # remove stopwords + stemming for title and description
     stopWordsEnglish = stopwords.words('english')
     stemmer = PorterStemmer()
 
     stopContentTitle = []
     stemContentTitle = []
+    lemContentTitle = []
 
     stopContentsDescriptions = []
     stemContentDescriptions = []
+    lemContentDescriptions = []
 
     for item in range(0, len(topic_list["topic_number"])):
         currentTitle = word_tokenize(topic_list["title"][item])
@@ -59,19 +66,27 @@ def extract_topics(filepath="./data/testset/topics.txt"):
 
         stopContentTitle.append(' '.join([w for w in currentTitle if w.lower() not in stopWordsEnglish]))
         stemContentTitle.append(' '.join([stemmer.stem(word) for word in currentTitle]))
+        lemContentTitle.append(' '.join([wordnet_lemmatizer.lemmatize(word) for word in currentTitle]))
 
         stopContentsDescriptions.append(' '.join([w for w in currentDescription if w.lower() not in stopWordsEnglish]))
         stemContentDescriptions.append(' '.join([stemmer.stem(word) for word in currentDescription]))
+        lemContentTitle.append(' '.join([wordnet_lemmatizer.lemmatize(word) for word in currentDescription]))
 
     titleStopwordRemoved = pd.DataFrame({"titleStopwordRemoved": stopContentTitle})
     topic_list = topic_list.assign(titleStopwordRemoved=titleStopwordRemoved.values)
     stemTitle = pd.DataFrame({"stemTitle": stemContentTitle})
     topic_list = topic_list.assign(stemTitle=stemTitle.values)
+    lemTitle = pd.DataFrame({"lemTitle": lemContentTitle})
+    topic_list = topic_list.assign(lemTitle=lemTitle.values)
 
     descriptionsStopwordRemoved = pd.DataFrame({"descriptionsStopwordRemoved": stopContentsDescriptions})
     topic_list = topic_list.assign(descriptionsStopwordRemoved=descriptionsStopwordRemoved.values)
     stemDescription = pd.DataFrame({"stemDescription": stemContentDescriptions})
     topic_list = topic_list.assign(stemDescription=stemDescription.values)
+    lemDescription = pd.DataFrame({"lemDescription": lemContentDescriptions})
+    topic_list = topic_list.assign(lemDescription=lemDescription.values)
+    
+  
 
     return topic_list
 
