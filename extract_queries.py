@@ -70,7 +70,7 @@ def extract_topics(filepath="./data/testset/topics.txt", cutoff=False):
 
         stopContentsDescriptions.append(' '.join([w for w in currentDescription if w.lower() not in stopWordsEnglish]))
         stemContentDescriptions.append(' '.join([stemmer.stem(word) for word in currentDescription]))
-        lemContentTitle.append(' '.join([wordnet_lemmatizer.lemmatize(word) for word in currentDescription]))
+        lemContentDescriptions.append(' '.join([wordnet_lemmatizer.lemmatize(word) for word in currentDescription]))
 
     titleStopwordRemoved = pd.DataFrame({"titleStopwordRemoved": stopContentTitle})
     topic_list = topic_list.assign(titleStopwordRemoved=titleStopwordRemoved.values)
